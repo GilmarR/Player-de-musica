@@ -12,6 +12,19 @@ let durationMusic = document.querySelector('.fim');
 let image = document.querySelector('img');
 let nameMusic = document.querySelector('.descricao h2');
 let nameArtist = document.querySelector('.descricao p');
+let replay = document.querySelector('.btn_repeat');
+
+let replayEnabled = false;
+
+let volume = document.querySelector('.volume');
+let range = document.querySelector('.range-musica');
+
+const playButton = document.getElementById('btn-volume');
+
+//Variavel do volume 
+const audioPlayer = document.getElementById('audio-player');
+const volumeSlider = document.getElementById('volume-slider');
+
 
 renderMusic(indexMusic);
 
@@ -48,8 +61,50 @@ function renderMusic(index){
 		nameArtist.textContent = songs[index].artista;
 		image.src = songs[index].img;
 		durationMusic.textContent = secondsForMinute(Math.floor(music.duration));
+
+		document.querySelector('.btn_pause').style.display = 'block';
+		document.querySelector('.btn_play').style.display = 'none';
+
+		music.play();
 	});
 }
+
+function changeMusicAutomatic() {
+	// Verifique se a música atual chegou ao fim
+	if (music.currentTime >= music.duration) {
+	    // Atualize o índice da música para a próxima música
+	    indexMusic++;
+	    // Se chegarmos ao fim do array de músicas, comece de novo
+	    if (indexMusic === songs.length) {
+	      indexMusic = 0;
+	    }
+	    // Mude a música
+	    renderMusic(indexMusic);
+	}
+}
+
+
+
+replay.addEventListener("click", function() {
+    replayEnabled = !replayEnabled; // Inverte o valor da variável de controle ao clicar no botão
+
+    if (replayEnabled) {
+      replay.style.color = "#006787";
+      // Se o replay estiver ativado, adiciona um evento para reiniciar o áudio ao final da reprodução
+      music.addEventListener("ended", function() {
+        music.currentTime = 0; // Define o tempo atual do áudio para 0
+        music.play(); // Inicia o áudio novamente
+      });
+    } else {
+      replay.style.color = "#212529";
+      // Se o replay estiver desativado, remove o evento de reiniciar o áudio ao final da reprodução
+      music.removeEventListener("ended", function() {
+        music.currentTime = 0; // Define o tempo atual do áudio para 0
+        music.play(); // Inicia o áudio novamente
+      });
+    }
+});
+
 
 // Funções de botão
 // Dar play na música 
@@ -87,3 +142,30 @@ function secondsForMinute(seconds){
 
 	return campoMinutos+':'+campoSegundos;
 }
+
+//Define o volume do mixer
+volumeSlider.addEventListener('input', function() {
+  audioPlayer.volume = volumeSlider.value;
+});
+
+//Ativa e desativa o mixer
+volume.onclick = function() {
+    range.classList.toggle('active');
+}
+
+//Trocar ícone quando estiver mutado
+audioPlayer.addEventListener('volumechange', function() {
+	if (audioPlayer.volume === 0) {
+	   playButton.innerHTML = '<i class="fas fa-volume-mute fa-2x btn_cursor"></i>';
+	} else {
+	   playButton.innerHTML = '<i class="fas fa-volume fa-2x btn_cursor"></i>';
+	}
+});
+
+
+renderMusic(indexMusic);
+
+music.addEventListener('timeupdate', () => {
+  // Chame a função para mudar a música automaticamente
+  changeMusicAutomatic();
+});
